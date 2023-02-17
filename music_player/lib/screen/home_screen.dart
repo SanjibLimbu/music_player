@@ -1,103 +1,84 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:music_player/constant/color.dart';
-import 'package:music_player/constant/style.dart';
 
-class HomeScreen extends StatelessWidget {
+import 'package:music_player/screen/home_screen_content.dart';
+import 'package:on_audio_query/on_audio_query.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final OnAudioQuery _audioQuery = OnAudioQuery();
+
+  @override
+  void initState() {
+    super.initState();
+    requestStoragePermission();
+  }
+
+  void requestStoragePermission() async {
+    if (!kIsWeb) {
+      bool permissionStatus = await _audioQuery.permissionsStatus();
+      if (!permissionStatus) {
+        await _audioQuery.permissionsRequest();
+      }
+    }
+  }
+
+  int _selectedIndex = 0;
+  static List<Widget> _widgetOptions = <Widget>[
+    HomeScreenContent(),
+    const Text(
+      'Index 1: Business',
+    ),
+    Text(
+      'Index 2: School',
+    ),
+  ];
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
-      body: SafeArea(
-          child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hi There',
-              style:
-                  textStyle.copyWith(fontSize: 20, fontWeight: FontWeight.w500),
+      body: _widgetOptions.elementAt(_selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: bgColor,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
             ),
-            Text(
-              'What you want hear today?',
-              style: textStyle.copyWith(
-                  fontSize: 14,
-                  color: textSecondary,
-                  fontWeight: FontWeight.w400),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.list,
             ),
-            const SizedBox(
-              height: 15,
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.favorite,
             ),
-            SizedBox(
-              height: 45,
-              child: TextField(
-                onChanged: (value) {},
-                cursorColor: textSecondary,
-                style: textStyle.copyWith(
-                  color: textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: textSecondary,
-                  ),
-                  filled: true,
-                  fillColor: bgColorSecondary,
-                  hintText: 'Search the music',
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    color: textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 0,
-                    horizontal: 0,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(
-                        5,
-                      ),
-                    ),
-                    borderSide: BorderSide(
-                      width: 0,
-                      style: BorderStyle.none,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-           
-            Padding(
-              padding: const EdgeInsets.only(top: 20,bottom: 5),
-              child: Text(
-                "Musics",
-                style:
-                    textStyle.copyWith(fontSize: 16, fontWeight: FontWeight.w400),
-              ),
-            ),
-            
-            Flexible(
-              child: ListView.builder(
-                  itemCount: 12,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      child: ListTile(
-                        leading: Icon(Icons.music_note),
-                        title: Text('Music'),
-                        subtitle: Text('Singer'),
-                        trailing: Icon(Icons.play_arrow),
-                      ),
-                    );
-                  }),
-            )
-          ],
-        ),
-      )),
+            label: '',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blueAccent,
+        onTap: _onItemTapped,
+      ),
     );
   }
 }
