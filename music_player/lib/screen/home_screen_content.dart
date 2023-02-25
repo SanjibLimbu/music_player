@@ -2,16 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:music_player/constant/color.dart';
 import 'package:music_player/constant/style.dart';
+import 'package:music_player/model/songs.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 
-class HomeScreenContent extends StatelessWidget {
-  HomeScreenContent({
+class HomeScreenContent extends StatefulWidget {
+  const HomeScreenContent({
     super.key,
   });
 
-  final OnAudioQuery _audioQuery = OnAudioQuery();
+  @override
+  State<HomeScreenContent> createState() => _HomeScreenContentState();
+}
 
+class _HomeScreenContentState extends State<HomeScreenContent> {
   final AudioPlayer _player = AudioPlayer();
+
+  @override
+  void initState() {
+    _player.playerStateStream.listen(
+      (audioState) {
+        if (audioState.processingState == ProcessingState.completed) {
+          Provider.of<SongsModel>(context, listen: false).changeBoolIsPlaying();
+        }
+      },
+    );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _player.processingStateStream;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +62,10 @@ class HomeScreenContent extends StatelessWidget {
           SizedBox(
             height: 45,
             child: TextField(
-              onChanged: (value) {},
+              onChanged: (value) {
+                Provider.of<SongsModel>(context, listen: false)
+                    .runSongsFilter(value);
+              },
               cursorColor: textSecondary,
               style: textStyle.copyWith(
                 color: textSecondary,
@@ -88,81 +114,99 @@ class HomeScreenContent extends StatelessWidget {
             ),
           ),
           Flexible(
-            child: FutureBuilder(
-              future: _audioQuery.querySongs(
-                  // sortType: null,
-                  // uriType: UriType.INTERNAL,
-                  orderType: OrderType.ASC_OR_SMALLER,
-                  ignoreCase: true),
-              builder: (context, item) {
-                if (item.data == null) {
+            child: Consumer<SongsModel>(
+              builder: (context, songsdata, child) {
+                if (songsdata.foundSongs.isEmpty) {
                   return const Center(
-                    child: Text('No songs Found'),
+                    child: Text("No Songs"),
                   );
                 } else {
                   return ListView.builder(
-                      itemCount: item.data!.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 10,
+                    itemCount: songsdata.foundSongs.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: 10,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: bgColorSecondary,
+                            borderRadius: BorderRadius.circular(3),
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: bgColorSecondary,
-                              borderRadius: BorderRadius.circular(3),
+                          child: ListTile(
+                            visualDensity: const VisualDensity(vertical: -4),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: 16,
                             ),
-                            child: ListTile(
-                              visualDensity: const VisualDensity(vertical: -4),
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 4,
-                                horizontal: 16,
-                              ),
-                              leading: QueryArtworkWidget(
-                                          id: item.data![index].id,
-                                          type: ArtworkType.AUDIO)
-                                      .nullArtworkWidget ??
-                                  const Icon(
-                                    Icons.music_note,
-                                    size: 40,
-                                  ),
-                              title: Text(
-                                item.data![index].title,
-                                style: textStyle.copyWith(
-                                    color: textPrimary,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              subtitle: Text(
-                                item.data![index].artist ?? 'Unknown',
-                                style: textStyle.copyWith(
-                                    color: textSecondary,
-                                    fontWeight: FontWeight.w400),
-                              ),
-                              trailing: TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor: textPrimary,
-                                  shape: const CircleBorder(),
+                            leading: QueryArtworkWidget(
+                                        id: songsdata.foundSongs[index].id,
+                                        type: ArtworkType.AUDIO)
+                                    .nullArtworkWidget ??
+                                const Icon(
+                                  Icons.music_note,
+                                  size: 40,
                                 ),
-                                onPressed: () async {
-                                  String? uri = item.data![index].uri;
+                            title: Text(
+                              songsdata.foundSongs[index].title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: textStyle.copyWith(
+                                  color: textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                            subtitle: Text(
+                              songsdata.foundSongs[index].artist ??= 'Unknown',
+                              style: textStyle.copyWith(
+                                  color: textSecondary,
+                                  fontWeight: FontWeight.w400),
+                            ),
+                            trailing: TextButton(
+                              style: TextButton.styleFrom(
+                                backgroundColor: textPrimary,
+                                shape: const CircleBorder(),
+                              ),
+                              onPressed: () {
+                                String? uri = songsdata.foundSongs[index].uri;
 
-                                  await _player.setAudioSource(
-                                    AudioSource.uri(
-                                      Uri.parse(uri!),
-                                    ),
+                                _player.setAudioSource(
+                                  AudioSource.uri(
+                                    Uri.parse(uri!),
+                                  ),
+                                );
+
+                                if (songsdata.isPlayingVar) {
+                                  _player.pause();
+                                  songsdata.changeIsPlaying(
+                                    songsdata.foundSongs[index].id,
+                                    uri,
                                   );
-                                  await _player.play();
-                                },
-                                child: const Icon(
-                                  Icons.play_arrow_sharp,
-                                  color: bgColor,
-                                ),
-                              ),
+                                } else {
+                                  _player.play();
+
+                                  songsdata.changeIsPlaying(
+                                    songsdata.foundSongs[index].id,
+                                    uri,
+                                  );
+                                }
+                              },
+
+                              //id and uri is used to solve icon changing on all list item, for more see in songs.dart
+
+                              child: Icon(songsdata.foundSongs[index].uri==songsdata.songURI
+                                           &&
+                                      songsdata.isPlayingVar &&
+                                      songsdata.foundSongs[index].id ==
+                                          songsdata.songIDVar
+                                  ? Icons.pause_sharp
+                                  : Icons.play_arrow_sharp),
                             ),
                           ),
-                        );
-                      });
+                        ),
+                      );
+                    },
+                  );
                 }
               },
             ),

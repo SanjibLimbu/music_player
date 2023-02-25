@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:music_player/constant/color.dart';
+import 'package:music_player/model/songs.dart';
 
 import 'package:music_player/screen/home_screen_content.dart';
-import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,33 +13,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final OnAudioQuery _audioQuery = OnAudioQuery();
-
   @override
   void initState() {
-    super.initState();
-    requestStoragePermission();
-  }
+    Provider.of<SongsModel>(context, listen: false).requestStoragePermission();
+    Provider.of<SongsModel>(context, listen: false).getSongs();
+    Provider.of<SongsModel>(context, listen: false).isPlayingAndSondID();
 
-  void requestStoragePermission() async {
-    if (!kIsWeb) {
-      bool permissionStatus = await _audioQuery.permissionsStatus();
-      if (!permissionStatus) {
-        await _audioQuery.permissionsRequest();
-      }
-    }
+    super.initState();
   }
 
   int _selectedIndex = 0;
-  static List<Widget> _widgetOptions = <Widget>[
-    HomeScreenContent(),
+  static final List<Widget> _widgetOptions = <Widget>[
+    const HomeScreenContent(),
     const Text(
       'Index 1: Business',
     ),
-    Text(
+    const Text(
       'Index 2: School',
     ),
   ];
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -76,7 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: const Color.fromARGB(255, 103, 102, 102),
+        selectedItemColor: Colors.white,
         onTap: _onItemTapped,
       ),
     );
