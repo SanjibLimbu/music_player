@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:just_audio/just_audio.dart';
 
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -8,19 +9,28 @@ class SongsModel extends ChangeNotifier {
 
   final musicBox = Hive.box('music_box');
   final OnAudioQuery _audioQuery = OnAudioQuery();
+  final AudioPlayer player = AudioPlayer();
 
   List foundSongs = [];
   List allSongs = [];
 
   late bool isPlayingVar;
   late num songIDVar;
-  late String songURI;
+
+  //play
+  void playMusic() {
+    player.play();
+  }
+
+  //pause
+  void pause() {
+    player.pause();
+  }
 
   //initialize
   void isPlayingAndSondID() {
     isPlayingVar = musicBox.get('isPlaying') ?? false;
     songIDVar = musicBox.get('songID') ?? 0.1;
-    songURI = musicBox.get('songURI') ?? 'URI';
   }
 
 //after listening to stream, call after music finished
@@ -46,15 +56,9 @@ class SongsModel extends ChangeNotifier {
     List<SongModel> externalSongs = await _audioQuery.querySongs(
       uriType: UriType.EXTERNAL,
     );
-    List<SongModel> internalSongs = await _audioQuery.querySongs(
-      uriType: UriType.INTERNAL,
-    );
 
-    List<SongModel> songsFromInternalAndExternal =
-        internalSongs + externalSongs;
-    List<SongModel> songs = songsFromInternalAndExternal
-        .where((song) => song.isMusic == true)
-        .toList();
+    List<SongModel> songs =
+        externalSongs.where((song) => song.isMusic == true).toList();
 
     allSongs = songs;
     foundSongs = songs;
@@ -64,14 +68,13 @@ class SongsModel extends ChangeNotifier {
   }
 
 //songID is used to solve problem to changing icon on list
-  void changeIsPlaying(num id, String uri) {
+  void changeIsPlaying(num id) {
     final isPlaying = musicBox.get('isPlaying') ?? false;
     musicBox.put('isPlaying', !isPlaying);
     musicBox.put('songID', id);
-    musicBox.put('songURI', uri);
+
     isPlayingVar = musicBox.get('isPlaying');
     songIDVar = musicBox.get('songID');
-    songURI = musicBox.get('songURI');
 
     notifyListeners();
   }

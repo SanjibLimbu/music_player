@@ -5,22 +5,28 @@ import 'package:music_player/model/songs.dart';
 import 'package:music_player/screen/home_screen_content.dart';
 import 'package:provider/provider.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     Provider.of<SongsModel>(context, listen: false).requestStoragePermission();
-    Provider.of<SongsModel>(context, listen: false).getSongs();
-    Provider.of<SongsModel>(context, listen: false).isPlayingAndSondID();
-
     super.initState();
   }
+
+  // @override
+  // void dispose() {
+  //   Provider.of<SongsModel>(context, listen: false)
+  //       .player
+  //       .processingStateStream;
+
+  //   super.dispose();
+  // }
 
   int _selectedIndex = 0;
   static final List<Widget> _widgetOptions = <Widget>[
