@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_player/model/songs.dart';
+import 'package:music_player/screen/song_detail_screen.dart';
 
 
 import 'package:provider/provider.dart';
@@ -29,6 +30,7 @@ class MusicApp extends StatelessWidget {
         initialRoute: 'welcome_screen',
         routes: {
           'welcome_screen': (context) =>const WelcomeScreen(),
+          'song_detail_page':(context) => const SongDetailPage(),
         },
       ),
     );

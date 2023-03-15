@@ -15,14 +15,11 @@ class SearchField extends StatelessWidget {
       height: 45,
       child: TextField(
         onChanged: (value) {
-          Provider.of<SongsModel>(context, listen: false)
-              .runSongsFilter(value);
+          Provider.of<SongsModel>(context, listen: false).runSongsFilter(value);
         },
         cursorColor: textSecondary,
-        style: textStyle.copyWith(
+        style: titleSmall.copyWith(
           color: textSecondary,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
         ),
         decoration: const InputDecoration(
           prefixIcon: Icon(

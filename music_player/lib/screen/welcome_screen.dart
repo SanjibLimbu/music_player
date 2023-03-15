@@ -34,9 +34,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     const Text(
       'Index 1: Business',
     ),
-    const Text(
-      'Index 2: School',
-    ),
   ];
 
   void _onItemTapped(int index) {
@@ -58,12 +55,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.home,
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.list,
             ),
             label: '',
           ),
